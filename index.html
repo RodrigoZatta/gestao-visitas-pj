@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f4c81" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Gestão Inteligente de Visitas PJ — CredFoz / Sistema Ailos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ailosBlue: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              600: '#0f4c81',
+              700: '#0b3a63',
+              800: '#082c4b',
+              900: '#051e34'
+            },
+            tealCooper: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#0d9488',
+              600: '#0f766e',
+              700: '#115e59',
+              800: '#134e4a',
+              900: '#143d3b',
+              950: '#072221'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; color: #0f172a !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen pb-24 md:pb-10 transition-colors">
+
+  <!-- Barra Superior Fixa -->
+  <header class="no-print sticky top-0 z-30 bg-ailosBlue-700 dark:bg-ailosBlue-900 text-white shadow-md border-b border-ailosBlue-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-tealCooper-600 flex items-center justify-center font-extrabold text-sm shrink-0 shadow">CF</div>
+        <div class="truncate">
+          <div class="text-sm font-extrabold leading-tight truncate">Visitas PJ • CredFoz</div>
+          <div class="text-[11px] text-sky-100/90 truncate">Sistema Ailos • <span id="headerManagerName">Rodrigo Zatta de Souza</span></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <span id="demoBadgeHeader" class="hidden px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-400 text-slate-950">Demo</span>
+        <button type="button" onclick="navigateTo('nova-visita')" class="px-3 py-1.5 rounded-xl bg-tealCooper-500 hover:bg-tealCooper-600 active:scale-95 text-white text-xs font-bold shadow transition">
+          + Nova visita
+        </button>
+        <button type="button" onclick="toggleDarkMode()" title="Alternar tema claro/escuro" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">🌓</button>
+      </div>
+    </div>
+
+    <div id="demoBanner" class="hidden bg-amber-400 text-slate-950 px-3 py-1.5 text-xs font-bold">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <span>⚠️ MODO DEMONSTRAÇÃO ATIVO — Dados fictícios isolados. Indicadores oficiais de produção não são afetados.</span>
+        <button type="button" onclick="confirmClearDemoData()" class="px-2.5 py-0.5 rounded-lg bg-slate-950 text-amber-300 text-[11px] font-extrabold">Limpar dados de demonstração</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navegação Desktop -->
+  <nav class="no-print hidden md:block bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-14 z-20">
+    <div class="max-w-7xl mx-auto px-6 flex items-center gap-1 overflow-x-auto py-1.5" id="desktopNav">
+      <button data-nav="painel" onclick="navigateTo('painel')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">📊 Painel inicial</button>
+      <button data-nav="empresas" onclick="navigateTo('empresas')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">🏢 Empresas</button>
+      <button data-nav="nova-visita" onclick="navigateTo('nova-visita')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">🎤 Nova visita</button>
+      <button data-nav="historico" onclick="navigateTo('historico')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">🕒 Histórico</button>
+      <button data-nav="oportunidades" onclick="navigateTo('oportunidades')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">💼 Oportunidades</button>
+      <button data-nav="agenda" onclick="navigateTo('agenda')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">📅 Retornos</button>
+      <button data-nav="relatorios" onclick="navigateTo('relatorios')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">📑 Relatórios</button>
+      <button data-nav="configuracoes" onclick="navigateTo('configuracoes')" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-bold transition">⚙️ Configurações</button>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 pt-4 space-y-5">
+    <!-- Filtro Global de Período e Pesquisa Rápida -->
+    <section class="no-print bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ailosBlue-700 dark:text-tealCooper-400">Período:</span>
+          <select id="globalPeriodSelect" onchange="handleGlobalPeriodChange(this.value)" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <option value="hoje">Hoje</option>
+            <option value="ontem">Ontem</option>
+            <option value="esta-semana">Esta semana</option>
+            <option value="semana-anterior">Semana anterior</option>
+            <option value="este-mes">Este mês</option>
+            <option value="mes-anterior">Mês anterior</option>
+            <option value="este-trimestre">Este trimestre</option>
+            <option value="este-semestre">Este semestre</option>
+            <option value="este-ano">Este ano</option>
+            <option value="todo-historico">Todo o histórico</option>
+            <option value="personalizado">Período personalizado</option>
+          </select>
+
+          <div id="customPeriodInputs" class="hidden flex items-center gap-1.5 text-xs">
+            <input id="customStartDate" type="date" onchange="renderCurrentView()" class="px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+            <span>até</span>
+            <input id="customEndDate" type="date" onchange="renderCurrentView()" class="px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 sm:w-64">
+            <input id="quickCompanySearch" type="text" oninput="renderCurrentView()" placeholder="Busca rápida de empresa ou CNPJ..." class="w-full pl-3 pr-8 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+            <span class="absolute right-2.5 top-2 text-xs text-slate-400">🔍</span>
+          </div>
+          <button type="button" onclick="openDailyClosingModal()" class="px-3 py-2 rounded-xl bg-ailosBlue-600 hover:bg-ailosBlue-700 text-white text-xs font-bold shrink-0">
+            Fechamento do dia
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Container Dinâmico das Telas -->
+    <div id="appContainer"></div>
+  </main>
+
+  <!-- Navegação Inferior Mobile (iPhone / Safari) -->
+  <nav class="no-print md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-1 py-1.5">
+    <div class="grid grid-cols-6 items-center text-center">
+      <button data-nav="painel" onclick="navigateTo('painel')" class="mobile-nav-btn flex flex-col items-center py-1 rounded-xl text-[10px] font-bold">
+        <span class="text-base leading-none mb-0.5">📊</span><span>Painel</span>
+      </button>
+      <button data-nav="empresas" onclick="navigateTo('empresas')" class="mobile-nav-btn flex flex-col items-center py-1 rounded-xl text-[10px] font-bold">
+        <span class="text-base leading-none mb-0.5">🏢</span><span>Empresas</span>
+      </button>
+      <button data-nav="nova-visita" onclick="navigateTo('nova-visita')" class="mobile-nav-btn flex flex-col items-center py-1.5 px-1 rounded-2xl bg-tealCooper-600 text-white text-[10px] font-extrabold shadow">
+        <span class="text-base leading-none mb-0.5">🎤</span><span>+ Visita</span>
+      </button>
+      <button data-nav="historico" onclick="navigateTo('historico')" class="mobile-nav-btn flex flex-col items-center py-1 rounded-xl text-[10px] font-bold">
+        <span class="text-base leading-none mb-0.5">🕒</span><span>Histórico</span>
+      </button>
+      <button data-nav="relatorios" onclick="navigateTo('relatorios')" class="mobile-nav-btn flex flex-col items-center py-1 rounded-xl text-[10px] font-bold">
+        <span class="text-base leading-none mb-0.5">📑</span><span>Relatórios</span>
+      </button>
+      <button data-nav="configuracoes" onclick="navigateTo('configuracoes')" class="mobile-nav-btn flex flex-col items-center py-1 rounded-xl text-[10px] font-bold">
+        <span class="text-base leading-none mb-0.5">⚙️</span><span>Ajustes</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal Genérico -->
+  <div id="modalBackdrop" class="no-print hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div id="modalDialog" class="bg-white dark:bg-slate-900 w-full sm:max-w-2xl max-h-[92vh] rounded-t-3xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+        <h3 id="modalTitle" class="text-base font-extrabold">Modal</h3>
+        <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">✕</button>
+      </div>
+      <div id="modalBody" class="p-5 overflow-y-auto space-y-4 text-sm"></div>
+    </div>
+  </div>
+
+  <!-- Toast de Feedback -->
+  <div id="toastContainer" class="no-print fixed top-16 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <script>
+    const STORAGE_KEY = 'credfos_visitas_pj_v2_state';
+    const STATE_DB_NAME = 'CredFozVisitasPJ_StateDB';
+    const STATE_STORE_NAME = 'app_state_store';
+    const AUDIO_DB_NAME = 'CredFozVisitasPJ_AudioDB';
+    const AUDIO_STORE_NAME = 'audios';
+    const MEDIA_DB_NAME = 'CredFozVisitasPJ_MediaDB';
+    const MEDIA_STORE_NAME = 'visit_media';
+    const TIMEZONE = 'America/Sao_Paulo';
+
+    const SEGMENTS_LIST = ['Serviços', 'Comércio', 'Indústria/Fábrica', 'Agronegócio', 'Construção Civil', 'Saúde', 'Tecnologia', 'Outros'];
+    const VISIT_TYPES = ['Prospecção', 'Manutenção de cooperado', 'Retorno de negociação', 'Pós-venda', 'Recuperação de relacionamento'];
+
+    const SEGMENT_QUESTIONS = {
+      'Serviços': [
+        'Como funciona o ritmo de recebimento dos seus clientes hoje — a maioria paga à vista, no cartão ou a prazo? Isso chega a apertar o caixa em algum momento do mês?',
+        'Olhando para o tamanho da sua equipe hoje, o que mais pesa na rotina de pagamentos e benefícios do time?',
+        'Existem meses mais fracos e meses mais fortes no ano? Como você costuma se preparar para atravessar os períodos mais calmos com tranquilidade?'
+      ],
+      'Comércio': [
+        'No dia a dia da loja, quanto das vendas passa na maquininha ou no Pix e você sente que as taxas atuais estão justas para a sua margem?',
+        'Na hora de reforçar o estoque para datas fortes ou aproveitar um bom desconto de fornecedor, o caixa próprio dá conta ou às vezes falta fôlego?',
+        'Você tem planos de reformar a loja, abrir outro ponto ou trocar veículo de entrega nos próximos meses?'
+      ],
+      'Indústria/Fábrica': [
+        'Entre comprar a matéria-prima, produzir e receber do cliente, quanto tempo o seu dinheiro fica parado na operação?',
+        'Tem alguma máquina, equipamento ou veículo que, se você modernizasse hoje, aumentaria sua produção ou reduziria custos?'
+      ],
+      'Agronegócio': [
+        'Entre o investimento no custeio da produção e a entrada do dinheiro na venda, como você equilibra o caixa para não faltar recurso no meio do ciclo?',
+        'Há necessidade de investir em máquinas, implementos, armazenagem ou veículos para ganhar eficiência na propriedade?'
+      ],
+      'Construção Civil': [
+        'Entre a compra de materiais, o pagamento da mão de obra e o recebimento das medições ou parcelas, onde o fluxo da obra costuma apertar mais?',
+        'Há planos de adquirir caminhões, equipamentos pesados ou novos terrenos para os próximos projetos?'
+      ],
+      'Saúde': [
+        'No faturamento da clínica, qual parte vem de convênios com prazo maior para repasse e qual parte vem de atendimento particular?',
+        'Você pretende investir em novos equipamentos, reforma ou ampliação de salas de atendimento nos próximos meses?'
+      ],
+      'Tecnologia': [
+        'Como a receita é recorrente, os clientes pagam mais por boleto, Pix ou cartão — e você sente alguma dificuldade com inadimplência ou conciliação?',
+        'Quais são os próximos passos de crescimento da empresa em contratação de time, estrutura ou comercial?'
+      ],
+      'Outros': [
+        'No dia a dia da empresa, como funciona a entrada e saída de dinheiro — o prazo de receber dos clientes bate com o prazo de pagar fornecedores?',
+        'Quais são os principais planos de melhoria, compra de equipamentos ou crescimento da empresa para este ano?'
+      ]
+    };
+
+    const SEGMENT_BENCHMARK = {
+      'Serviços': { immediate: ['Conta PJ / Domicílio bancário', 'Cobrança bancária / Pix'], strategic: ['Estruturar capital de giro preventivo para sazonalidade, aplicações com liquidez diária para reserva de caixa e seguro empresarial / vida em grupo.'] },
+      'Comércio': { immediate: ['Adquirência / Maquininhas de cartão', 'Conta PJ / Antecipação de recebíveis'], strategic: ['Otimizar taxas de adquirência e fluxo de estoque com capital de giro rotativo, consórcio para veículos de entrega e proteção patrimonial da loja.'] },
+      'Indústria/Fábrica': { immediate: ['Capital de giro / Antecipação de recebíveis', 'Cobrança bancária'], strategic: ['Apoiar modernização de maquinário via consórcio ou financiamento PJ, gestão de folha e seguros patrimoniais/operacionais.'] },
+      'Agronegócio': { immediate: ['Custeio / Capital de giro', 'Conta PJ'], strategic: ['Alinhar prazos de ciclo produtivo com linhas de crédito adequadas, consórcio de máquinas/implementos e aplicações para reserva pós-colheita.'] },
+      'Construção Civil': { immediate: ['Cobrança bancária / Gestão de recebíveis', 'Capital de giro para obra'], strategic: ['Estruturar consórcio ou financiamento para veículos pesados/equipamentos, seguro de obra e aplicações com liquidez para etapas do cronograma.'] },
+      'Saúde': { immediate: ['Antecipação de recebíveis / Adquirência', 'Conta PJ'], strategic: ['Apoiar expansão de salas e equipamentos médicos via consórcio ou crédito, previdência privada e seguro profissional/equipamentos.'] },
+      'Tecnologia': { immediate: ['Cobrança recorrente / Pix', 'Conta PJ'], strategic: ['Otimizar conciliação de receitas recorrentes, rentabilizar caixa em aplicações de liquidez e estruturar benefícios/previdência para retenção de talentos.'] },
+      'Outros': { immediate: ['Conta PJ / Domicílio bancário', 'Adquirência / Cobrança'], strategic: ['Organizar fluxo de recebimentos e pagamentos, criar reserva financeira com liquidez e avaliar proteção patrimonial para empresa e sócios.'] }
+    };
+
+    function getNowSP() {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(now);
+      const map = {};
+      parts.forEach(p => { map[p.type] = p.value; });
+      return { isoDate: `${map.year}-${map.month}-${map.day}`, time: `${map.hour}:${map.minute}` };
+    }
+    function getTodayISO() { return getNowSP().isoDate; }
+    function addDaysISO(isoDate, days) {
+      const [y, m, d] = isoDate.split('-').map(Number);
+      return new Date(Date.UTC(y, m - 1, d + Number(days || 0))).toISOString().slice(0, 10);
+    }
+    function formatDateBR(isoDate) {
+      if (!isoDate) return '—';
+      const p = String(isoDate).slice(0, 10).split('-');
+      return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : isoDate;
+    }
+    function formatBRL(val) { return (Number(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function escapeHTML(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+    function generateId(prefix = 'id') { return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`; }
+    function cleanCNPJ(val) { return String(val || '').replace(/\D/g, '').slice(0, 14); }
+    function formatCNPJ(val) {
+      const d = cleanCNPJ(val);
+      if (d.length <= 2) return d;
+      if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+      if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+      if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+      return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12, 14)}`;
+    }
+
+    function createEmptyStore() { return { companies: [], visits: [], opportunities: [], commitments: [], trash: [] }; }
+    function createDemoStore() {
+      const today = getTodayISO();
+      return {
+        companies: [
+          { id: 'comp-demo-1', tradeName: 'Alfa Materiais de Construção', legalName: 'Alfa Materiais de Construção Ltda', cnpj: '29.811.952/0001-77', situation: 'ATIVA', segment: 'Construção Civil', classification: 'prospecto', monthlyRevenue: 400000, employees: 18, cnae: 'Comércio varejista de materiais de construção em geral', cep: '88220-000', address: 'Av. Nereu Ramos', number: '1250', complement: 'Sala 01', neighborhood: 'Centro', city: 'Itapema', state: 'SC', contactName: 'Marcos', contactRole: 'Sócio-administrador', phone: '(47) 3268-1020', whatsapp: '(47) 99988-1020', email: 'marcos@alfamateriais.com.br', banks: 'Itaú e Sicoob' },
+          { id: 'comp-demo-2', tradeName: 'Clínica Litoral Saúde', legalName: 'Clínica Litoral Saúde Integrada Ltda', cnpj: '14.520.890/0001-34', situation: 'ATIVA', segment: 'Saúde', classification: 'cooperado', monthlyRevenue: 260000, employees: 14, cnae: 'Atividade médica ambulatorial restrita a consultas', cep: '88220-000', address: 'Rua 250', number: '410', complement: '', neighborhood: 'Meia Praia', city: 'Itapema', state: 'SC', contactName: 'Dra. Camila', contactRole: 'Sócia-administradora', phone: '(47) 3268-5500', whatsapp: '(47) 99977-5500', email: 'contato@litoralsaude.com.br', banks: 'CredFoz e Bradesco' }
+        ],
+        visits: [
+          { id: 'vis-demo-1', visitNumber: 1, companyId: 'comp-demo-1', segment: 'Construção Civil', visitType: 'Prospecção', visitDate: today, visitTime: '10:30', personMet: 'Marcos', channel: 'Presencial na empresa', status: 'concluida', rawText: 'Visitei a Alfa Materiais de Construção, falei com o Marcos. Tem uns 18 funcionários, fatura cerca de 400 mil por mês. Usa Itaú e Sicoob, tá pagando caro nas máquinas de cartão e quer pegar um caminhão de uns 280 mil.', executiveReport: '• Atendimento de prospecção realizado com Marcos na Alfa Materiais de Construção.\n• Estrutura estimada em 18 colaboradores e faturamento mensal próximo de R$ 400.000,00.', actionPlan: { nextAction: 'Apresentar simulação de caminhão (R$ 280 mil) e proposta de adquirência.', urgency: 'D+3', suggestedDate: addDaysISO(today, 3), responsible: 'Gerente', actionStatus: 'Pendente' }, commercialMapping: { immediateOpportunities: ['Adquirência / Maquininhas de cartão', 'Conta PJ'], strategicConsulting: 'Estruturar consórcio ou crédito para o caminhão de R$ 280 mil e seguro empresarial.' }, crmText: 'Visita de prospecção à Alfa Materiais de Construção com Marcos. Oportunidade em adquirência e aquisição de caminhão (R$ 280 mil).' }
+        ],
+        opportunities: [
+          { id: 'opp-demo-1', visitId: 'vis-demo-1', companyId: 'comp-demo-1', segment: 'Construção Civil', product: 'Aquisição de caminhão (Consórcio / Crédito)', potentialValue: 280000, stage: 'Em negociação', priority: 'Alta prioridade', responsible: 'Gerente', dueDate: addDaysISO(today, 3), status: 'Ativa' }
+        ],
+        commitments: [
+          { id: 'cmt-demo-1', visitId: 'vis-demo-1', companyId: 'comp-demo-1', description: 'Apresentar propostas de adquirência e caminhão para Marcos', dueDate: addDaysISO(today, 3), urgency: 'D+3', responsible: 'Gerente', status: 'Pendente' }
+        ],
+        trash: []
+      };
+    }
+
+    function loadInitialState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            darkMode: Boolean(parsed.darkMode),
+            demoMode: Boolean(parsed.demoMode),
+            currentModule: parsed.currentModule || 'painel',
+            globalPeriod: parsed.globalPeriod || 'hoje',
+            customStartDate: parsed.customStartDate || getTodayISO(),
+            customEndDate: parsed.customEndDate || getTodayISO(),
+            settings: { managerName: 'Rodrigo Zatta de Souza', roleName: 'Gerente de Negócios PJ', institution: 'CredFoz — Sistema Ailos', unit: 'Itapema/SC', gestor: 'Rafael', defaultPeriod: 'hoje', geminiApiKey: '', ...(parsed.settings || {}) },
+            production: parsed.production || createEmptyStore(),
+            demo: parsed.demo || createDemoStore()
+          };
+        }
+      } catch (e) {}
+      return {
+        darkMode: false, demoMode: false, currentModule: 'painel', globalPeriod: 'hoje',
+        customStartDate: getTodayISO(), customEndDate: getTodayISO(),
+        settings: { managerName: 'Rodrigo Zatta de Souza', roleName: 'Gerente de Negócios PJ', institution: 'CredFoz — Sistema Ailos', unit: 'Itapema/SC', gestor: 'Rafael', defaultPeriod: 'hoje', geminiApiKey: '' },
+        production: createEmptyStore(), demo: createDemoStore()
+      };
+    }
+
+    let appState = loadInitialState();
+    let editingCompanyId = null;
+    let tempAudioId = null;
+    let tempMediaIds = [];
+    let mediaRecorderInstance = null;
+    let recordedChunks = [];
+    let recordingTimerInterval = null;
+    let recordingSeconds = 0;
+    let speechRecognitionInstance = null;
+    let isRecordingActive = false;
+    let accumulatedTranscript = '';
+
+    function persistState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); } catch (e) {}
+    }
+    function getActiveStore() { return appState.demoMode ? appState.demo : appState.production; }
+    function getActiveCompanies() { return getActiveStore().companies || []; }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const colors = { success: 'bg-tealCooper-700 text-white', error: 'bg-rose-600 text-white', warn: 'bg-amber-500 text-slate-950', info: 'bg-ailosBlue-700 text-white' };
+      const el = document.createElement('div');
+      el.className = `px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg transition ${colors[type] || colors.info}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    function openModal(title, bodyHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('modalBackdrop').classList.add('hidden'); }
+
+    // IndexedDB Áudio & Mídia
+    function openDB(name, store) {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(name, 1);
+        req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(store)) req.result.createObjectStore(store, { keyPath: 'id' }); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function putDB(name, store, record) {
+      const db = await openDB(name, store);
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(record);
+        tx.oncomplete = () => resolve(record.id);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    async function getDB(name, store, id) {
+      if (!id) return null;
+      const db = await openDB(name, store);
+      return new Promise((resolve) => {
+        const tx = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    // Gravação de Áudio + Transcrição em Tempo Real (Web Speech API)
+    function initSpeechRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+      const rec = new SR();
+      rec.lang = 'pt-BR';
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const text = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            accumulatedTranscript += (accumulatedTranscript ? ' ' : '') + text.trim();
+          } else {
+            interim += text;
+          }
+        }
+        const rawBox = document.getElementById('visitRawText');
+        if (rawBox) {
+          rawBox.value = (accumulatedTranscript + (interim ? ' ' + interim : '')).trim();
+        }
+      };
+      rec.onerror = (e) => console.warn('SpeechRecognition:', e.error);
+      rec.onend = () => {
+        if (isRecordingActive) {
+          try { rec.start(); } catch (_) {}
+        }
+      };
+      return rec;
+    }
+
+    async function startAudioRecording() {
+      const badge = document.getElementById('audioStageBadge');
+      const rawBox = document.getElementById('visitRawText');
+      accumulatedTranscript = rawBox ? rawBox.value.trim() : '';
+      isRecordingActive = true;
+
+      // Inicia reconhecimento de voz simultâneo
+      if (!speechRecognitionInstance) speechRecognitionInstance = initSpeechRecognition();
+      if (speechRecognitionInstance) {
+        try { speechRecognitionInstance.start(); } catch (_) {}
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (badge) badge.textContent = '🎙️ Transcrevendo voz...';
+        showToast('Transcrição por voz iniciada!', 'info');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedChunks = [];
+        recordingSeconds = 0;
+        let options = {};
+        for (const mime of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']) {
+          if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(mime)) { options = { mimeType: mime }; break; }
+        }
+        mediaRecorderInstance = new MediaRecorder(stream, options);
+        mediaRecorderInstance.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) recordedChunks.push(ev.data); };
+        mediaRecorderInstance.onstop = async () => {
+          clearInterval(recordingTimerInterval);
+          stream.getTracks().forEach(t => t.stop());
+          const blob = new Blob(recordedChunks, { type: mediaRecorderInstance.mimeType || 'audio/mp4' });
+          if (blob.size > 0) {
+            tempAudioId = await putDB(AUDIO_DB_NAME, AUDIO_STORE_NAME, { id: generateId('aud'), blob, mimeType: blob.type, createdAt: Date.now() });
+            renderAudioPlayer(tempAudioId);
+          }
+          if (badge) badge.textContent = '✅ Áudio gravado e transcrito';
+        };
+        mediaRecorderInstance.start(500);
+        if (badge) badge.textContent = '🔴 Gravando e transcrevendo...';
+        document.getElementById('btnStartRec').disabled = true;
+        document.getElementById('btnStopRec').disabled = false;
+        recordingTimerInterval = setInterval(() => {
+          recordingSeconds += 1;
+          const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+          const s = String(recordingSeconds % 60).padStart(2, '0');
+          const tEl = document.getElementById('recTimer');
+          if (tEl) tEl.textContent = `${m}:${s}`;
+        }, 1000);
+      } catch (err) {
+        console.warn(err);
+        showToast('Permita o microfone no Safari para gravar e transcrever.', 'error');
+      }
+    }
+
+    function stopAudioRecording() {
+      isRecordingActive = false;
+      if (speechRecognitionInstance) {
+        try { speechRecognitionInstance.stop(); } catch (_) {}
+      }
+      if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+        mediaRecorderInstance.stop();
+      }
+      const btnStart = document.getElementById('btnStartRec');
+      const btnStop = document.getElementById('btnStopRec');
+      if (btnStart) btnStart.disabled = false;
+      if (btnStop) btnStop.disabled = true;
+      showToast('Gravação encerrada. Texto transcrito pronto!', 'success');
+    }
+
+    async function renderAudioPlayer(audioId) {
+      const box = document.getElementById('audioPlayerBox');
+      if (!box || !audioId) return;
+      const rec = await getDB(AUDIO_DB_NAME, AUDIO_STORE_NAME, audioId);
+      if (!rec || !rec.blob) return;
+      const url = URL.createObjectURL(rec.blob);
+      box.classList.remove('hidden');
+      box.innerHTML = `<div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 space-y-2"><div class="text-xs font-bold text-tealCooper-700">🎧 Áudio da visita</div><audio controls playsinline src="${url}" class="w-full h-10"></audio></div>`;
+    }
+
+    // Fotos e Vídeos da Visita
+    async function handleAttachVisitMedia(inputEl) {
+      const files = Array.from(inputEl?.files || []);
+      if (!files.length) return;
+      for (const file of files) {
+        const id = await putDB(MEDIA_DB_NAME, MEDIA_STORE_NAME, { id: generateId('med'), name: file.name, mimeType: file.type, blob: file, createdAt: Date.now() });
+        tempMediaIds.push(id);
+      }
+      await renderVisitMediaGallery();
+      showToast(`${files.length} mídia(s) anexada(s)!`, 'success');
+      inputEl.value = '';
+    }
+
+    async function renderVisitMediaGallery() {
+      const grid = document.getElementById('visitMediaGallery');
+      if (!grid) return;
+      if (!tempMediaIds.length) {
+        grid.innerHTML = '<div class="text-[11px] text-slate-500 col-span-full">Nenhuma foto ou vídeo anexado nesta visita.</div>';
+        return;
+      }
+      const items = [];
+      for (const id of tempMediaIds) {
+        const m = await getDB(MEDIA_DB_NAME, MEDIA_STORE_NAME, id);
+        if (!m || !m.blob) continue;
+        const url = URL.createObjectURL(m.blob);
+        const isVideo = String(m.mimeType || '').startsWith('video/');
+        items.push(`<div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100">${isVideo ? `<video controls playsinline src="${url}" class="w-full h-28 object-cover"></video>` : `<img src="${url}" class="w-full h-28 object-cover" />`}</div>`);
+      }
+      grid.innerHTML = items.join('');
+    }
+
+    // IA Estruturada em 4 Blocos
+    function buildLocalStructuredAI(rawText, segment, companyName, contactName, visitDate) {
+      const cleaned = String(rawText || '').replace(/\s+/g, ' ').trim() || `Visita realizada em ${companyName} com foco em relacionamento comercial.`;
+      const sentences = cleaned.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
+      const bullets = (sentences.length ? sentences : [cleaned]).map(s => `• ${s.charAt(0).toUpperCase()}${s.slice(1)}.`).join('\n');
+      const lower = cleaned.toLowerCase();
+      const urgency = /amanhã|amanha|urgente|hoje/.test(lower) ? 'D+1' : /semana/.test(lower) ? 'D+7' : 'D+3';
+      const days = urgency === 'D+1' ? 1 : urgency === 'D+7' ? 7 : 3;
+      const suggestedDate = addDaysISO(visitDate || getTodayISO(), days);
+      const responsible = /assistente|cadastro|documento/.test(lower) ? 'Assistente' : 'Gerente';
+      const segInfo = SEGMENT_BENCHMARK[segment] || SEGMENT_BENCHMARK['Outros'];
+
+      return {
+        executiveReport: bullets,
+        actionPlan: {
+          nextAction: `Apresentar proposta e dar sequência nas demandas levantadas com ${companyName}.`,
+          urgency, suggestedDate, responsible, actionStatus: 'Pendente'
+        },
+        commercialMapping: {
+          immediateOpportunities: segInfo.immediate,
+          strategicConsulting: segInfo.strategic.join(' ')
+        },
+        crmText: `Realizei visita comercial à ${companyName} (${segment}), junto a ${contactName || 'liderança'}. ${cleaned.endsWith('.') ? cleaned : cleaned + '.'} Retorno previsto em ${urgency} (${formatDateBR(suggestedDate)}).`
+      };
+    }
+
+    function processVisitWithAI() {
+      const rawText = document.getElementById('visitRawText')?.value || '';
+      const segment = document.getElementById('visitSegmentSelect')?.value || 'Outros';
+      const companyId = document.getElementById('visitCompanySelect')?.value || '';
+      const company = getActiveCompanies().find(c => c.id === companyId);
+      const companyName = company ? (company.tradeName || company.legalName) : 'Empresa PJ';
+      const contactName = document.getElementById('visitContactInput')?.value?.trim() || company?.contactName || '';
+      const visitDate = document.getElementById('visitDateInput')?.value || getTodayISO();
+
+      const ai = buildLocalStructuredAI(rawText, segment, companyName, contactName, visitDate);
+      document.getElementById('outExecutiveReport').value = ai.executiveReport;
+      document.getElementById('outNextAction').value = ai.actionPlan.nextAction;
+      document.getElementById('outUrgency').value = ai.actionPlan.urgency;
+      document.getElementById('outSuggestedDate').value = ai.actionPlan.suggestedDate;
+      document.getElementById('outResponsible').value = ai.actionPlan.responsible;
+      document.getElementById('outImmediateOpps').value = ai.commercialMapping.immediateOpportunities.join(', ');
+      document.getElementById('outStrategicConsulting').value = ai.commercialMapping.strategicConsulting;
+      document.getElementById('outCrmText').value = ai.crmText;
+      showToast('Transcrição organizada nos 4 blocos!', 'success');
+    }
+
+    // Consulta CNPJ na BrasilAPI + Link Google Maps
+    async function consultCnpjBrasilAPI() {
+      const cnpj = cleanCNPJ(document.getElementById('compCnpj')?.value);
+      const statusEl = document.getElementById('cnpjLookupStatus');
+      if (cnpj.length !== 14) {
+        showToast('Digite os 14 dígitos do CNPJ.', 'warn');
+        return;
+      }
+      if (statusEl) statusEl.textContent = '⏳ Consultando Receita Federal / BrasilAPI...';
+      try {
+        const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+        if (!res.ok) throw new Error('CNPJ não encontrado.');
+        const d = await res.json();
+        document.getElementById('compLegalName').value = d.razao_social || '';
+        document.getElementById('compTradeName').value = d.nome_fantasia || d.razao_social || '';
+        document.getElementById('compAddress').value = `${d.logradouro || ''}, ${d.numero || 'S/N'} - ${d.bairro || ''}`.trim();
+        document.getElementById('compCity').value = d.municipio || '';
+        document.getElementById('compState').value = d.uf || '';
+        document.getElementById('compCnae').value = d.cnae_fiscal_descricao || '';
+        if (Array.isArray(d.qsa) && d.qsa[0]) {
+          document.getElementById('compContactName').value = d.qsa[0].nome_socio || '';
+        }
+        if (statusEl) statusEl.textContent = `✅ Situação: ${d.descricao_situacao_cadastral || 'ATIVA'}`;
+        updateGoogleMapsButton();
+        showToast('Dados do CNPJ carregados!', 'success');
+      } catch (err) {
+        if (statusEl) statusEl.textContent = '⚠️ Não foi possível consultar este CNPJ automaticamente.';
+      }
+    }
+
+    function updateGoogleMapsButton() {
+      const addr = [document.getElementById('compAddress')?.value, document.getElementById('compCity')?.value, document.getElementById('compState')?.value].filter(Boolean).join(', ');
+      const link = document.getElementById('googleMapsCompanyLink');
+      if (link) {
+        link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr || 'Itapema SC')}`;
+      }
+    }
+
+    // Filtro de Período
+    function filterByPeriod(items, dateField) {
+      const p = appState.globalPeriod;
+      const today = getTodayISO();
+      const q = (document.getElementById('quickCompanySearch')?.value || '').toLowerCase().trim();
+      const companies = getActiveCompanies();
+
+      return (items || []).filter(item => {
+        if (q) {
+          const comp = companies.find(c => c.id === item.companyId) || item;
+          const hay = `${comp.tradeName || ''} ${comp.legalName || ''} ${comp.cnpj || ''} ${item.rawText || ''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        const d = String(item[dateField] || '').slice(0, 10);
+        if (!d || p === 'todo-historico') return true;
+        if (p === 'hoje') return d === today;
+        if (p === 'ontem') return d === addDaysISO(today, -1);
+        if (p === 'esta-semana') return d >= addDaysISO(today, -7) && d <= today;
+        if (p === 'este-mes') return d.slice(0, 7) === today.slice(0, 7);
+        if (p === 'personalizado') return d >= appState.customStartDate && d <= appState.customEndDate;
+        return true;
+      });
+    }
+
+    // Renderização das 8 Telas
+    function renderPainelView() {
+      const store = getActiveStore();
+      const visits = filterByPeriod(store.visits, 'visitDate');
+      const opps = filterByPeriod(store.opportunities, 'dueDate');
+      const totalPipeline = opps.reduce((acc, o) => acc + (Number(o.potentialValue) || 0), 0);
+      const pendingCommitments = (store.commitments || []).filter(c => c.status !== 'Concluído');
+
+      return `
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="text-xs font-bold text-slate-500">Visitas no período</div>
+            <div class="text-2xl font-extrabold text-ailosBlue-700 dark:text-sky-400 mt-1">${visits.length}</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="text-xs font-bold text-slate-500">Empresas cadastradas</div>
+            <div class="text-2xl font-extrabold text-tealCooper-600 mt-1">${store.companies.length}</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="text-xs font-bold text-slate-500">Pipeline mapeado</div>
+            <div class="text-xl font-extrabold text-emerald-600 mt-1">${formatBRL(totalPipeline)}</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="text-xs font-bold text-slate-500">Retornos pendentes</div>
+            <div class="text-2xl font-extrabold text-amber-600 mt-1">${pendingCommitments.length}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-extrabold">Últimas visitas registradas</h2>
+              <button onclick="navigateTo('nova-visita')" class="text-xs font-bold text-tealCooper-600">+ Registrar visita</button>
+            </div>
+            ${visits.length ? visits.map(v => {
+              const c = store.companies.find(x => x.id === v.companyId);
+              return `<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between text-xs font-bold">
+                  <span>${escapeHTML(c?.tradeName || 'Empresa PJ')}</span>
+                  <span class="text-slate-500">${formatDateBR(v.visitDate)} • ${escapeHTML(v.visitTime || '')}</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">${escapeHTML(v.executiveReport || v.rawText)}</p>
+              </div>`;
+            }).join('') : '<p class="text-xs text-slate-500">Nenhuma visita registrada neste período.</p>'}
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold">Próximos retornos e compromissos</h2>
+            ${pendingCommitments.length ? pendingCommitments.map(cm => {
+              const c = store.companies.find(x => x.id === cm.companyId);
+              return `<div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-xs font-bold">${escapeHTML(c?.tradeName || 'Empresa')} • <span class="text-amber-700">${formatDateBR(cm.dueDate)}</span></div>
+                  <div class="text-xs text-slate-600 dark:text-slate-300">${escapeHTML(cm.description)}</div>
+                </div>
+                <button onclick="completeCommitment('${cm.id}')" class="px-2.5 py-1 rounded-lg bg-tealCooper-600 text-white text-[11px] font-bold shrink-0">Concluir</button>
+              </div>`;
+            }).join('') : '<p class="text-xs text-slate-500">Nenhum retorno pendente.</p>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEmpresasView() {
+      const companies = getActiveCompanies();
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <form onsubmit="saveCompanyForm(event)" class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold text-ailosBlue-700 dark:text-sky-400">🏢 Cadastrar / Consultar Empresa PJ</h2>
+            <div>
+              <label class="text-xs font-bold">CNPJ (Consulta Receita Federal)</label>
+              <div class="flex gap-2 mt-1">
+                <input id="compCnpj" oninput="this.value=formatCNPJ(this.value)" placeholder="00.000.000/0000-00" class="flex-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" />
+                <button type="button" onclick="consultCnpjBrasilAPI()" class="px-3 py-2 rounded-xl bg-tealCooper-600 text-white text-xs font-bold">Consultar</button>
+              </div>
+              <div id="cnpjLookupStatus" class="text-[11px] mt-1 text-slate-500"></div>
+            </div>
+            <div><label class="text-xs font-bold">Nome Fantasia *</label><input id="compTradeName" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div><label class="text-xs font-bold">Razão Social</label><input id="compLegalName" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs font-bold">Segmento</label>
+                <select id="compSegment" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  ${SEGMENTS_LIST.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-bold">Relacionamento</label>
+                <select id="compClass" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <option value="prospecto">Prospecto</option>
+                  <option value="cooperado">Cooperado</option>
+                </select>
+              </div>
+            </div>
+            <div><label class="text-xs font-bold">Endereço completo</label><input id="compAddress" oninput="updateGoogleMapsButton()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="col-span-2"><label class="text-xs font-bold">Cidade</label><input id="compCity" oninput="updateGoogleMapsButton()" value="Itapema" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold">UF</label><input id="compState" oninput="updateGoogleMapsButton()" value="SC" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div><label class="text-xs font-bold">Contato / Sócio</label><input id="compContactName" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold">WhatsApp</label><input id="compWhatsapp" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            </div>
+            <input type="hidden" id="compCnae" />
+            <div class="flex gap-2 pt-1">
+              <a id="googleMapsCompanyLink" href="https://www.google.com/maps/search/?api=1&query=Itapema+SC" target="_blank" rel="noopener" class="px-3 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-center">📍 Google Maps</a>
+              <button type="submit" class="flex-1 py-2.5 rounded-xl bg-ailosBlue-700 text-white text-xs font-bold">Salvar empresa</button>
+            </div>
+          </form>
+
+          <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold">Carteira de Empresas (${companies.length})</h2>
+            <div class="space-y-2">
+              ${companies.length ? companies.map(c => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${c.tradeName} ${c.address || ''} ${c.city || ''} ${c.state || ''}`)}`;
+                return `<div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div class="text-xs font-extrabold">${escapeHTML(c.tradeName)} <span class="px-2 py-0.5 rounded-full text-[10px] bg-sky-100 text-ailosBlue-800">${escapeHTML(c.segment)}</span></div>
+                    <div class="text-[11px] text-slate-500">CNPJ: ${escapeHTML(c.cnpj || '—')} • ${escapeHTML(c.city || '')}/${escapeHTML(c.state || '')} • Contato: ${escapeHTML(c.contactName || '—')}</div>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <a href="${mapsUrl}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold">📍 Mapa</a>
+                    <button onclick="startVisitForCompany('${c.id}')" class="px-2.5 py-1.5 rounded-lg bg-tealCooper-600 text-white text-[11px] font-bold">+ Visita</button>
+                  </div>
+                </div>`;
+              }).join('') : '<p class="text-xs text-slate-500">Nenhuma empresa cadastrada ainda.</p>'}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderNovaVisitaView() {
+      const companies = getActiveCompanies();
+      const now = getNowSP();
+      return `
+        <form onsubmit="saveVisitForm(event)" class="space-y-4">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold text-ailosBlue-700 dark:text-sky-400">🎤 Registro de Visita PJ</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label class="text-xs font-bold">Empresa *</label>
+                <select id="visitCompanySelect" required onchange="onVisitCompanyChange(this.value)" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <option value="">Selecione a empresa...</option>
+                  ${companies.map(c => `<option value="${c.id}">${escapeHTML(c.tradeName)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-bold">Segmento</label>
+                <select id="visitSegmentSelect" onchange="updateQuestionsGuide()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  ${SEGMENTS_LIST.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-bold">Tipo de visita</label>
+                <select id="visitTypeSelect" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  ${VISIT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div><label class="text-xs font-bold">Data</label><input id="visitDateInput" type="date" value="${now.isoDate}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold">Hora</label><input id="visitTimeInput" type="time" value="${now.time}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold">Pessoa atendida</label><input id="visitContactInput" placeholder="Nome do decisor" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div>
+                <label class="text-xs font-bold">Canal</label>
+                <select id="visitChannelSelect" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <option>Presencial na empresa</option>
+                  <option>Presencial na cooperativa</option>
+                  <option>Videochamada / Telefone</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Roteiro Consultivo por Segmento -->
+            <div id="segmentQuestionsBox" class="p-3 rounded-xl bg-sky-50 dark:bg-slate-800 border border-sky-200 dark:border-slate-700 text-xs space-y-1">
+              <div class="font-extrabold text-ailosBlue-700 dark:text-sky-400">💡 Perguntas-chave para a conversa:</div>
+              <ul id="segmentQuestionsList" class="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300">
+                ${SEGMENT_QUESTIONS['Serviços'].map(q => `<li>${escapeHTML(q)}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <!-- Áudio + Transcrição em Tempo Real -->
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-sm font-extrabold">🎙️ Relato por Áudio (com Transcrição Automática)</h3>
+              <div class="flex items-center gap-2">
+                <span id="recTimer" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">00:00</span>
+                <span id="audioStageBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-ailosBlue-800">Pronto para gravar</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button type="button" id="btnStartRec" onclick="startAudioRecording()" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold">🔴 Gravar e Transcrever</button>
+              <button type="button" id="btnStopRec" onclick="stopAudioRecording()" disabled class="px-4 py-2.5 rounded-xl bg-slate-700 text-white text-xs font-bold disabled:opacity-40">⏹ Encerrar</button>
+              <button type="button" onclick="processVisitWithAI()" class="px-4 py-2.5 rounded-xl bg-ailosBlue-700 text-white text-xs font-bold">✨ Organizar nos 4 Blocos</button>
+            </div>
+
+            <div id="audioPlayerBox" class="hidden"></div>
+
+            <div>
+              <label class="text-xs font-bold">Texto Transcrito / Relato Bruto (editável ou via ditado do teclado)</label>
+              <textarea id="visitRawText" rows="4" placeholder="Fale ao gravar ou toque aqui e use o microfone do teclado do iPhone..." class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"></textarea>
+            </div>
+          </div>
+
+          <!-- Fotos e Vídeos da Visita -->
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-extrabold">📸 Fotos e Vídeos da Visita</h3>
+              <label class="px-3 py-2 rounded-xl bg-tealCooper-600 text-white text-xs font-bold cursor-pointer">
+                + Anexar Fotos / Vídeos
+                <input type="file" accept="image/*,video/*" multiple onchange="handleAttachVisitMedia(this)" class="hidden" />
+              </label>
+            </div>
+            <div id="visitMediaGallery" class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              <div class="text-[11px] text-slate-500 col-span-full">Nenhuma foto ou vídeo anexado nesta visita.</div>
+            </div>
+          </div>
+
+          <!-- 4 Blocos Editáveis -->
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h3 class="text-sm font-extrabold">📋 Relatório Estruturado (4 Blocos)</h3>
+            <div><label class="text-xs font-bold text-ailosBlue-700">1. Relato Executivo</label><textarea id="outExecutiveReport" rows="3" class="w-full mt-1 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"></textarea></div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div class="md:col-span-2"><label class="text-xs font-bold text-tealCooper-700">2. Próxima Ação</label><input id="outNextAction" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold">Prazo / Urgência</label><select id="outUrgency" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"><option>D+1</option><option selected>D+3</option><option>D+7</option></select></div>
+              <div><label class="text-xs font-bold">Data Retorno</label><input id="outSuggestedDate" type="date" value="${addDaysISO(now.isoDate, 3)}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            </div>
+            <input type="hidden" id="outResponsible" value="Gerente" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div><label class="text-xs font-bold text-amber-700">3. Oportunidades Imediatas</label><input id="outImmediateOpps" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+              <div><label class="text-xs font-bold text-amber-700">Consultoria Estratégica</label><input id="outStrategicConsulting" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            </div>
+            <div><label class="text-xs font-bold text-slate-700 dark:text-slate-300">4. Texto Pronto para CRM</label><textarea id="outCrmText" rows="3" class="w-full mt-1 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"></textarea></div>
+            <button type="submit" class="w-full py-3 rounded-xl bg-tealCooper-600 hover:bg-tealCooper-700 text-white text-xs font-extrabold shadow">✅ Salvar Visita Concluída</button>
+          </div>
+        </form>
+      `;
+    }
+
+    function renderHistoricoView() {
+      const store = getActiveStore();
+      const visits = filterByPeriod(store.visits, 'visitDate');
+      return `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <h2 class="text-sm font-extrabold">🕒 Histórico de Visitas (${visits.length})</h2>
+          ${visits.length ? visits.map(v => {
+            const c = store.companies.find(x => x.id === v.companyId);
+            return `<div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+              <div class="flex flex-wrap justify-between gap-2">
+                <div class="text-xs font-extrabold">${escapeHTML(c?.tradeName || 'Empresa PJ')} • <span class="text-tealCooper-600">${escapeHTML(v.visitType)}</span></div>
+                <div class="text-xs text-slate-500">${formatDateBR(v.visitDate)} às ${escapeHTML(v.visitTime || '')}</div>
+              </div>
+              <p class="text-xs whitespace-pre-line text-slate-700 dark:text-slate-300">${escapeHTML(v.executiveReport || v.rawText)}</p>
+              <div class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px]">
+                <strong>Texto CRM:</strong> ${escapeHTML(v.crmText || '')}
+              </div>
+              <button onclick="navigator.clipboard?.writeText(${JSON.stringify(v.crmText || '')}); showToast('Texto CRM copiado!', 'success');" class="px-3 py-1.5 rounded-lg bg-ailosBlue-700 text-white text-[11px] font-bold">Copiar texto CRM</button>
+            </div>`;
+          }).join('') : '<p class="text-xs text-slate-500">Nenhuma visita encontrada.</p>'}
+        </div>
+      `;
+    }
+
+    function renderOportunidadesView() {
+      const store = getActiveStore();
+      const opps = filterByPeriod(store.opportunities, 'dueDate');
+      return `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <h2 class="text-sm font-extrabold">💼 Pipeline de Oportunidades PJ (${opps.length})</h2>
+          ${opps.length ? opps.map(o => {
+            const c = store.companies.find(x => x.id === o.companyId);
+            return `<div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-wrap justify-between items-center gap-2">
+              <div>
+                <div class="text-xs font-extrabold">${escapeHTML(c?.tradeName || 'Empresa')} — ${escapeHTML(o.product)}</div>
+                <div class="text-[11px] text-slate-500">Etapa: ${escapeHTML(o.stage)} • Previsão: ${formatDateBR(o.dueDate)}</div>
+              </div>
+              <div class="text-xs font-extrabold text-emerald-600">${formatBRL(o.potentialValue)}</div>
+            </div>`;
+          }).join('') : '<p class="text-xs text-slate-500">Nenhuma oportunidade mapeada neste período.</p>'}
+        </div>
+      `;
+    }
+
+    function renderAgendaView() {
+      const store = getActiveStore();
+      const list = store.commitments || [];
+      return `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <h2 class="text-sm font-extrabold">📅 Agenda de Retornos e Follow-up (${list.length})</h2>
+          ${list.length ? list.map(cm => {
+            const c = store.companies.find(x => x.id === cm.companyId);
+            return `<div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+              <div>
+                <div class="text-xs font-bold">${escapeHTML(c?.tradeName || 'Empresa')} • ${formatDateBR(cm.dueDate)} (${escapeHTML(cm.status)})</div>
+                <div class="text-xs text-slate-600 dark:text-slate-300">${escapeHTML(cm.description)}</div>
+              </div>
+              ${cm.status !== 'Concluído' ? `<button onclick="completeCommitment('${cm.id}')" class="px-3 py-1.5 rounded-lg bg-tealCooper-600 text-white text-xs font-bold">Concluir</button>` : '<span class="text-xs font-bold text-emerald-600">✓ Concluído</span>'}
+            </div>`;
+          }).join('') : '<p class="text-xs text-slate-500">Nenhum compromisso agendado.</p>'}
+        </div>
+      `;
+    }
+
+    function renderRelatoriosView() {
+      const store = getActiveStore();
+      const visits = filterByPeriod(store.visits, 'visitDate');
+      return `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-extrabold">📑 Relatório Gerencial — ${escapeHTML(appState.settings.institution)}</h2>
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-xl bg-ailosBlue-700 text-white text-xs font-bold">🖨️ Imprimir / PDF</button>
+          </div>
+          <p class="text-xs text-slate-500">Gerente: ${escapeHTML(appState.settings.managerName)} • Unidade: ${escapeHTML(appState.settings.unit)} • Gestor: ${escapeHTML(appState.settings.gestor)}</p>
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs space-y-2">
+            <div><strong>Total de visitas no filtro:</strong> ${visits.length}</div>
+            <div><strong>Total de empresas na carteira:</strong> ${store.companies.length}</div>
+            ${visits.map(v => {
+              const c = store.companies.find(x => x.id === v.companyId);
+              return `<div class="pt-2 border-t border-slate-200 dark:border-slate-700"><strong>${formatDateBR(v.visitDate)} - ${escapeHTML(c?.tradeName || 'Empresa')}:</strong> ${escapeHTML(v.crmText || v.rawText)}</div>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderConfiguracoesView() {
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onsubmit="saveSettingsForm(event)" class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold">⚙️ Dados do Gerente e Unidade</h2>
+            <div><label class="text-xs font-bold">Nome do Gerente</label><input id="setManagerName" value="${escapeHTML(appState.settings.managerName)}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div><label class="text-xs font-bold">Cooperativa / Sistema</label><input id="setInstitution" value="${escapeHTML(appState.settings.institution)}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div><label class="text-xs font-bold">Unidade / PA</label><input id="setUnit" value="${escapeHTML(appState.settings.unit)}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <div><label class="text-xs font-bold">Gestor Regional</label><input id="setGestor" value="${escapeHTML(appState.settings.gestor)}" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs" /></div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-ailosBlue-700 text-white text-xs font-bold">Salvar configurações</button>
+          </form>
+
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <h2 class="text-sm font-extrabold">💾 Backup JSON e Modo Demonstração</h2>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-slate-800">
+              <span class="text-xs font-bold">Modo Demonstração (dados fictícios)</span>
+              <button type="button" onclick="toggleDemoMode()" class="px-3 py-1.5 rounded-lg ${appState.demoMode ? 'bg-amber-400 text-slate-950' : 'bg-slate-300 text-slate-800'} text-xs font-extrabold">
+                ${appState.demoMode ? 'Ativo' : 'Desativado'}
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="exportBackupJSON()" class="flex-1 py-2.5 rounded-xl bg-tealCooper-600 text-white text-xs font-bold">⬇️ Exportar Backup JSON</button>
+              <label class="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-center cursor-pointer">
+                ⬆️ Importar Backup JSON
+                <input type="file" accept=".json" onchange="importBackupJSON(this)" class="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Ações e Eventos
+    function saveCompanyForm(e) {
+      e.preventDefault();
+      const store = getActiveStore();
+      const comp = {
+        id: generateId('comp'),
+        cnpj: document.getElementById('compCnpj').value.trim(),
+        tradeName: document.getElementById('compTradeName').value.trim(),
+        legalName: document.getElementById('compLegalName').value.trim(),
+        segment: document.getElementById('compSegment').value,
+        classification: document.getElementById('compClass').value,
+        address: document.getElementById('compAddress').value.trim(),
+        city: document.getElementById('compCity').value.trim(),
+        state: document.getElementById('compState').value.trim(),
+        contactName: document.getElementById('compContactName').value.trim(),
+        whatsapp: document.getElementById('compWhatsapp').value.trim(),
+        cnae: document.getElementById('compCnae').value.trim()
+      };
+      store.companies.unshift(comp);
+      persistState();
+      showToast('Empresa cadastrada com sucesso!', 'success');
+      renderCurrentView();
+    }
+
+    function saveVisitForm(e) {
+      e.preventDefault();
+      const store = getActiveStore();
+      const companyId = document.getElementById('visitCompanySelect').value;
+      const segment = document.getElementById('visitSegmentSelect').value;
+      const visitDate = document.getElementById('visitDateInput').value;
+      const nextAction = document.getElementById('outNextAction').value.trim();
+      const suggestedDate = document.getElementById('outSuggestedDate').value;
+      const urgency = document.getElementById('outUrgency').value;
+
+      if (!document.getElementById('outExecutiveReport').value.trim()) {
+        processVisitWithAI();
+      }
+
+      const visitId = generateId('vis');
+      store.visits.unshift({
+        id: visitId,
+        visitNumber: store.visits.length + 1,
+        companyId,
+        segment,
+        visitType: document.getElementById('visitTypeSelect').value,
+        visitDate,
+        visitTime: document.getElementById('visitTimeInput').value,
+        personMet: document.getElementById('visitContactInput').value.trim(),
+        channel: document.getElementById('visitChannelSelect').value,
+        status: 'concluida',
+        audioId: tempAudioId,
+        mediaIds: [...tempMediaIds],
+        rawText: document.getElementById('visitRawText').value.trim(),
+        executiveReport: document.getElementById('outExecutiveReport').value.trim(),
+        crmText: document.getElementById('outCrmText').value.trim()
+      });
+
+      if (nextAction) {
+        store.commitments.unshift({
+          id: generateId('cmt'),
+          visitId,
+          companyId,
+          description: nextAction,
+          dueDate: suggestedDate || addDaysISO(visitDate, 3),
+          urgency,
+          responsible: 'Gerente',
+          status: 'Pendente'
+        });
+      }
+
+      const oppsRaw = document.getElementById('outImmediateOpps').value.split(',').map(s => s.trim()).filter(Boolean);
+      oppsRaw.forEach(prod => {
+        store.opportunities.unshift({
+          id: generateId('opp'),
+          visitId,
+          companyId,
+          segment,
+          product: prod,
+          potentialValue: 0,
+          stage: 'Identificada',
+          dueDate: suggestedDate || addDaysISO(visitDate, 3),
+          status: 'Ativa'
+        });
+      });
+
+      tempAudioId = null;
+      tempMediaIds = [];
+      persistState();
+      showToast('Visita salva com sucesso!', 'success');
+      navigateTo('historico');
+    }
+
+    function onVisitCompanyChange(companyId) {
+      const c = getActiveCompanies().find(x => x.id === companyId);
+      if (!c) return;
+      document.getElementById('visitSegmentSelect').value = c.segment || 'Outros';
+      document.getElementById('visitContactInput').value = c.contactName || '';
+      updateQuestionsGuide();
+    }
+
+    function updateQuestionsGuide() {
+      const seg = document.getElementById('visitSegmentSelect')?.value || 'Outros';
+      const list = document.getElementById('segmentQuestionsList');
+      if (list) {
+        list.innerHTML = (SEGMENT_QUESTIONS[seg] || SEGMENT_QUESTIONS['Outros']).map(q => `<li>${escapeHTML(q)}</li>`).join('');
+      }
+    }
+
+    function startVisitForCompany(companyId) {
+      navigateTo('nova-visita');
+      setTimeout(() => {
+        const sel = document.getElementById('visitCompanySelect');
+        if (sel) { sel.value = companyId; onVisitCompanyChange(companyId); }
+      }, 30);
+    }
+
+    function completeCommitment(id) {
+      const item = (getActiveStore().commitments || []).find(c => c.id === id);
+      if (item) { item.status = 'Concluído'; persistState(); renderCurrentView(); showToast('Retorno concluído!', 'success'); }
+    }
+
+    function saveSettingsForm(e) {
+      e.preventDefault();
+      appState.settings.managerName = document.getElementById('setManagerName').value.trim();
+      appState.settings.institution = document.getElementById('setInstitution').value.trim();
+      appState.settings.unit = document.getElementById('setUnit').value.trim();
+      appState.settings.gestor = document.getElementById('setGestor').value.trim();
+      document.getElementById('headerManagerName').textContent = appState.settings.managerName;
+      persistState();
+      showToast('Configurações salvas!', 'success');
+    }
+
+    function toggleDemoMode() {
+      appState.demoMode = !appState.demoMode;
+      persistState();
+      syncShellUI();
+      renderCurrentView();
+    }
+
+    function confirmClearDemoData() {
+      appState.demo = createDemoStore();
+      persistState();
+      renderCurrentView();
+      showToast('Dados de demonstração restaurados.', 'info');
+    }
+
+    function exportBackupJSON() {
+      const payload = {
+        app: 'GestaoInteligenteVisitasPJ_CredFoz',
+        version: '2.1',
+        exportedAtISO: new Date().toISOString(),
+        settings: appState.settings,
+        production: appState.production,
+        demo: appState.demo
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `backup-visitas-pj-${getTodayISO()}.json`;
+      a.click();
+    }
+
+    function importBackupJSON(inputEl) {
+      const file = inputEl?.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result));
+          if (parsed.settings) appState.settings = { ...appState.settings, ...parsed.settings };
+          if (parsed.production) appState.production = parsed.production;
+          if (parsed.demo) appState.demo = parsed.demo;
+          persistState();
+          syncShellUI();
+          renderCurrentView();
+          showToast('Backup JSON importado com sucesso!', 'success');
+        } catch (err) {
+          showToast('Arquivo JSON inválido.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function openDailyClosingModal() {
+      const visitsToday = getActiveStore().visits.filter(v => v.visitDate === getTodayISO());
+      openModal('Fechamento do Dia', `
+        <p class="text-xs text-slate-600 dark:text-slate-300">Resumo de <strong>${formatDateBR(getTodayISO())}</strong> (${escapeHTML(appState.settings.managerName)}):</p>
+        <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs space-y-1">
+          <div><strong>Visitas realizadas hoje:</strong> ${visitsToday.length}</div>
+          ${visitsToday.map(v => {
+            const c = getActiveCompanies().find(x => x.id === v.companyId);
+            return `<div>• ${escapeHTML(c?.tradeName || 'Empresa')}: ${escapeHTML(v.crmText || v.rawText)}</div>`;
+          }).join('')}
+        </div>
+      `);
+    }
+
+    function handleGlobalPeriodChange(val) {
+      appState.globalPeriod = val;
+      document.getElementById('customPeriodInputs').classList.toggle('hidden', val !== 'personalizado');
+      persistState();
+      renderCurrentView();
+    }
+
+    function toggleDarkMode() {
+      appState.darkMode = !appState.darkMode;
+      document.documentElement.classList.toggle('dark', appState.darkMode);
+      persistState();
+    }
+
+    function navigateTo(mod) {
+      appState.currentModule = mod;
+      persistState();
+      syncShellUI();
+      renderCurrentView();
+    }
+
+    function syncShellUI() {
+      document.documentElement.classList.toggle('dark', appState.darkMode);
+      document.getElementById('headerManagerName').textContent = appState.settings.managerName;
+      document.getElementById('demoBanner').classList.toggle('hidden', !appState.demoMode);
+      document.getElementById('demoBadgeHeader').classList.toggle('hidden', !appState.demoMode);
+      document.getElementById('globalPeriodSelect').value = appState.globalPeriod;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.nav === appState.currentModule;
+        btn.classList.toggle('bg-ailosBlue-700', active);
+        btn.classList.toggle('text-white', active);
+      });
+    }
+
+    function renderCurrentView() {
+      const container = document.getElementById('appContainer');
+      const m = appState.currentModule;
+      if (m === 'empresas') container.innerHTML = renderEmpresasView();
+      else if (m === 'nova-visita') container.innerHTML = renderNovaVisitaView();
+      else if (m === 'historico') container.innerHTML = renderHistoricoView();
+      else if (m === 'oportunidades') container.innerHTML = renderOportunidadesView();
+      else if (m === 'agenda') container.innerHTML = renderAgendaView();
+      else if (m === 'relatorios') container.innerHTML = renderRelatoriosView();
+      else if (m === 'configuracoes') container.innerHTML = renderConfiguracoesView();
+      else container.innerHTML = renderPainelView();
+    }
+
+    syncShellUI();
+    renderCurrentView();
+  </script>
+</body>
+</html>
